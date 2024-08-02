@@ -17,7 +17,7 @@ module.exports = {
         quotes: ["error", "double"],
         "no-unused-vars": "off",
         "no-console": [
-            "error",
+            "warn",
             {
                 allow: ["info", "error", "debug", "clear"]
             }
