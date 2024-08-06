@@ -83,3 +83,56 @@ export const hsv2xy = (hue: number, saturation: number, value: number, radius: n
         y: phi + radius
     };
 };
+
+export const hsl2rgb = (hue: number, saturation: number, lightness: number): Array<number> => {
+    saturation /= 100;
+    lightness /= 100;
+    const C = (1 - Math.abs(2 * lightness - 1)) * saturation;
+    const X = C * (1 - Math.abs(((hue / 60) % 2) - 1));
+    const m = lightness - C / 2;
+    let [R, G, B] = (0 <= hue && hue < 60 && [C, X, 0]) ||
+        (60 <= hue && hue < 120 && [X, C, 0]) ||
+        (120 <= hue && hue < 180 && [0, C, X]) ||
+        (180 <= hue && hue < 240 && [0, X, C]) ||
+        (240 <= hue && hue < 300 && [X, 0, C]) ||
+        (300 <= hue && hue < 360 && [C, 0, X]) || [0, 0, 0];
+    [R, G, B] = [(R + m) * 255, (G + m) * 255, (B + m) * 255];
+    return [Math.round(R), Math.round(G), Math.round(B)];
+};
+
+export const rgbToLuminance = (r: number, g: number, b: number): number => {
+    const a = [r, g, b].map((v) => {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+};
+
+/**
+ * Convert an RGB String into a HEX Color String
+ * @param rgbString the RGB String to be Converted to HEX
+ * @returns The HEX Color Value for the RGB String
+ */
+export const rgbToHex = (rgbString: string): string => {
+    return (
+        "#" +
+        rgbString
+            .split(new RegExp("[\\s,]{1,}", "g"))
+            .map((v) => v.trim())
+            .filter((v) => String(v).length > 0)
+            .map((v) => Number(v).toString(16).padStart(2, "0"))
+            .join("")
+    );
+};
+
+export const hsl2hsv = (h: number, s: number, l: number): [number, number, number] => {
+    const v = l + s * Math.min(l, 1 - l);
+    const sv = v === 0 ? 0 : 2 * (1 - l / v);
+    return [h, sv * 100, v * 100];
+};
+
+export const hsv2hsl = (h: number, s: number, v: number): [number, number, number] => {
+    const l = v - (v * s) / 2;
+    const sl = l === 0 || l === 1 ? 0 : (v - l) / Math.min(l, 1 - l);
+    return [h, sl * 100, l * 100];
+};

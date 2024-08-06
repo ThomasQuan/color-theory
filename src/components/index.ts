@@ -1,2 +1,3 @@
 export * from "./ColorWheel";
-export * from "./TextTable";
+export * from "./Dropdown";
+export * from "./HSL";

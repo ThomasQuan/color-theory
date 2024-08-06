@@ -1,23 +1,26 @@
-import React, { ComponentProps, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import clsx from "clsx";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Draggable, { DraggableEventHandler } from "react-draggable";
 
+import Dropdown from "./Dropdown";
 import { harmonies, hsv2rgb, hsv2xy, polar2xy, rad2deg, xy2polar, xy2rgb } from "../helpers";
 
-export type ColorWheelProps = Omit<ComponentProps<"div">, "color"> & {
+export type ColorWheelProps = {
     radius: number;
-    harmony: keyof typeof harmonies;
+    defaultHarmony: keyof typeof harmonies;
     color?: { hue: number; saturation: number; value: number };
     defaultColor?: { hue: number; saturation: number; value: number };
     onChange?: (colors: { hue: number; saturation: number; value: number }[]) => void;
+    className?: string;
 };
 
 export const ColorWheel = ({
     radius,
-    harmony: harmonyName,
+    defaultHarmony = "analogous",
     color,
     defaultColor,
     onChange,
-    ...props
+    className = ""
 }: ColorWheelProps) => {
     const ref = useRef<HTMLCanvasElement>(null);
     const [position, setPosition] = useState(
@@ -25,7 +28,9 @@ export const ColorWheel = ({
             ? hsv2xy(defaultColor.hue, defaultColor.saturation, defaultColor.value, radius)
             : hsv2xy(0, 1, 1, radius)
     );
-    const harmony = useMemo(() => harmonies[harmonyName], [harmonies, harmonyName]);
+    const [selectedHarmony, setSelectedHarmony] = useState<keyof typeof harmonies>(defaultHarmony);
+
+    const harmony = useMemo(() => harmonies[selectedHarmony], [harmonies, selectedHarmony]);
 
     useEffect(() => {
         if (!ref.current) return;
@@ -33,15 +38,17 @@ export const ColorWheel = ({
 
         if (!ctx) return;
 
-        ctx.canvas.width = radius * 2;
-        ctx.canvas.height = radius * 2;
+        const canvasSize = radius * 2;
+
+        ctx.canvas.width = canvasSize;
+        ctx.canvas.height = canvasSize;
 
         drawCircle(ctx);
     }, []);
 
     useEffect(() => {
         if (color) {
-            setPosition(hsv2xy(color.hue, color.saturation, color.value, radius));
+            setPosition(hsv2xy(color.hue, 1, 1, radius));
         }
     }, [color, radius]);
 
@@ -81,9 +88,8 @@ export const ColorWheel = ({
         });
 
         onChange?.([{ hue, saturation, value }, ...colors]);
-
-        return colors;
-    }, [position, harmony, polar2xy, onChange, xy2polar, rad2deg, radius]);
+        return [{ hue, saturation, value }, ...colors];
+    }, [position, harmony, polar2xy, xy2polar, rad2deg, radius]);
 
     const drawCircle = useCallback(
         (ctx: CanvasRenderingContext2D) => {
@@ -117,7 +123,7 @@ export const ColorWheel = ({
                 }
             }
 
-            ctx.putImageData(image, 0, 0);
+            ctx.putImageData(image, 0, 0); // Draw with padding
         },
         [radius]
     );
@@ -126,70 +132,119 @@ export const ColorWheel = ({
 
     return (
         <div
-            style={{
-                position: "relative",
-                width: `${radius * 2}px`,
-                height: `${radius * 2}px`
-            }}
-            {...props}
+            className={clsx(
+                "flex flex-wrap sm:flex-nowrap justify-center space-x-4 px-5 py-4",
+                className
+            )}
         >
-            <canvas
-                ref={ref}
+            <div
                 style={{
-                    width: "100%",
-                    height: "100%",
-                    borderRadius: "9999px"
+                    position: "relative",
+                    width: `${radius * 2}px`,
+                    height: `${radius * 2}px`
                 }}
-            />
-            {harmonyPairs.map((harmony: any, i: number) => {
-                const [r, g, b] = hsv2rgb(harmony.hue, harmony.saturation, harmony.value);
-                return (
+            >
+                <canvas
+                    ref={ref}
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: "9999px"
+                    }}
+                />
+                {harmonyPairs.map((harmony: any, i: number) => {
+                    if (i === 0) return null;
+                    const [r, g, b] = hsv2rgb(harmony.hue, harmony.saturation, harmony.value);
+                    return (
+                        <div
+                            key={i}
+                            style={{
+                                position: "absolute",
+                                top: "-12px",
+                                left: "-12px",
+                                width: "24px",
+                                height: "24px",
+                                borderRadius: "999px",
+                                border: "2px solid #fff",
+                                backgroundColor: `rgb(${r}, ${g}, ${b})`,
+                                transform: `translate(${harmony.x}px, ${harmony.y}px)`,
+                                boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.05)"
+                            }}
+                        />
+                    );
+                })}
+                <Draggable onDrag={handleDrag} position={position}>
                     <div
-                        key={i}
                         style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            alignItems: "center",
                             position: "absolute",
                             top: "-12px",
                             left: "-12px",
                             width: "24px",
                             height: "24px",
-                            borderRadius: "999px",
-                            border: "2px solid #fff",
+                            borderRadius: "99px",
+                            border: "2px solid rgba(255, 255, 255, 1)",
                             backgroundColor: `rgb(${r}, ${g}, ${b})`,
-                            transform: `translate(${harmony.x}px, ${harmony.y}px)`,
                             boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.05)"
                         }}
-                    />
-                );
-            })}
-            <Draggable onDrag={handleDrag} position={position}>
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        position: "absolute",
-                        top: "-12px",
-                        left: "-12px",
-                        width: "24px",
-                        height: "24px",
-                        borderRadius: "99px",
-                        border: "2px solid rgba(255, 255, 255, 1)",
-                        backgroundColor: `rgb(${r}, ${g}, ${b})`,
-                        boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.05)"
-                    }}
-                >
-                    <div
-                        style={{
-                            position: "absolute",
-                            width: "4px",
-                            height: "4px",
-                            borderRadius: "99px",
-                            backgroundColor: "#fff"
+                    >
+                        <div
+                            style={{
+                                position: "absolute",
+                                width: "4px",
+                                height: "4px",
+                                borderRadius: "99px",
+                                backgroundColor: "#fff"
+                            }}
+                        />
+                    </div>
+                </Draggable>
+            </div>
+            <div className="rounded-xl flex items-center justify-center w-auto sm:w-96 sm:block">
+                <div>
+                    <Dropdown
+                        label="Harmony"
+                        value={selectedHarmony}
+                        onChange={(value) => {
+                            if (!value) return;
+                            if (!harmonies[value as keyof typeof harmonies]) {
+                                return;
+                            }
+                            setSelectedHarmony(value as keyof typeof harmonies);
                         }}
+                        options={Object.keys(harmonies).map((key) => ({
+                            label: key,
+                            value: key
+                        }))}
                     />
+                    <div className="">
+                        <div>
+                            <p>Color Combination</p>
+                        </div>
+                        <div className="space-x-1 flex items-center ">
+                            {harmonyPairs.map((harmony: any, i: number) => {
+                                const [r, g, b] = hsv2rgb(
+                                    harmony.hue,
+                                    harmony.saturation,
+                                    harmony.value
+                                );
+                                return (
+                                    <div
+                                        key={i}
+                                        className="rounded-lg w-14 h-14"
+                                        style={{
+                                            backgroundColor: `rgb(${r}, ${g}, ${b})`
+                                        }}
+                                    />
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
-            </Draggable>
+            </div>
         </div>
     );
 };

@@ -1,23 +1,16 @@
-import { useState } from "react";
 import "./App.css";
 
-import { ColorWheel } from "./components";
+import { HSL } from "./components";
 
 function App() {
-    const [brightness, setBrightness] = useState(1);
-
-    const handleBrightnessChange = (newBrightness: number) => {
-        setBrightness(newBrightness);
-        console.log(`Brightness: ${newBrightness}`);
-    };
     return (
         <div className="App">
-            <div className="flex justify-center items-center">
-                <div className="relative ">
-                    <div className="w-fit absolute top-5 left-5 z-[999]">
-                        <ColorWheel harmony="analogous" radius={200} />
-                    </div>
-                </div>
+            <div className="h-20 text-3xl font-semibold flex items-center justify-center">
+                <h1>Color Theory</h1>
+            </div>
+            <div className=" space-y-4 p-2 md:p-10">
+                <HSL />
+
                 {/* <TextTable /> */}
             </div>
         </div>
