@@ -5,15 +5,18 @@ import Hue from "./Hue";
 import Lightness from "./Lightness";
 import Saturation from "./Saturation";
 import { ColorWheel } from "../ColorWheel";
-import { hsl2hsv, hsl2rgb, rgbToHex } from "../../helpers";
+import InputField from "../Input";
+import {
+    getContrast,
+    getTextColor,
+    hexToHSL,
+    hsl2hsv,
+    hsl2rgb,
+    isValidHex,
+    rgbToHex
+} from "../../helpers";
 
-interface HSLValProps {
-    hue: number;
-    saturation: number;
-    lightness: number;
-}
-
-const HSL: FC<{ className?: string }> = ({ className = "" }) => {
+const HSL: FC = () => {
     const [hue, setHue] = useState(360);
     const [saturation, setSaturation] = useState(95);
     const [lightness, setLightness] = useState(50);
@@ -21,7 +24,7 @@ const HSL: FC<{ className?: string }> = ({ className = "" }) => {
     const [hex, setHex] = useState("#FF0000");
     const [normalTextRating, setNormalTextRating] = useState("AAA");
     const [largeTextRating, setLargeTextRating] = useState("AAA");
-
+    const [textColor, setTextColor] = useState("#ffffff");
     const [hsv, setHsv] = useState<{ h: number; s: number; v: number }>();
 
     useEffect(() => {
@@ -35,74 +38,107 @@ const HSL: FC<{ className?: string }> = ({ className = "" }) => {
             s,
             v
         });
+        const bestTextColor = getTextColor(_hex);
+        const contrast = getContrast(_hex, bestTextColor);
+        const normalTextRating = contrast >= 4.5 ? "AAA" : contrast >= 3 ? "AA" : "Fail";
+        const largeTextRating = contrast >= 7 ? "AAA" : contrast >= 4.5 ? "AA" : "Fail";
         setNormalTextRating(normalTextRating);
         setLargeTextRating(largeTextRating);
+        setTextColor(bestTextColor);
     }, [hue, saturation, lightness]);
 
     return (
-        <div className="flex flex-wrap">
-            <div className="flex flex-col space-y-4">
-                <div className="">
-                    <div
-                        className={clsx(
-                            "flex flex-wrap items-center justify-center w-full h-full "
-                        )}
-                    >
-                        <Hue
-                            hue={hue}
-                            saturation={saturation}
-                            lightness={lightness}
-                            setHue={setHue}
-                        />
-                        <div className="flex">
-                            <Saturation
-                                hue={hue}
-                                saturation={saturation}
-                                lightness={lightness}
-                                setSaturation={setSaturation}
-                            />
-                            <Lightness
-                                hue={hue}
-                                saturation={saturation}
-                                lightness={lightness}
-                                setLightness={setLightness}
-                            />
-                        </div>
-                    </div>
+        <div className="flex justify-center sm:justify-between w-full flex-wrap">
+            <div className=" w-full md:w-1/2 min-w-min">
+                <div className="px-4">
+                    <p className="text-xl underline underline-offset-8">Main Color Selector</p>
+                    <p className="text-sm">
+                        HSL is a cylindrical-coordinate representation of points in an RGB color
+                        model. It is widely used in color selection tools, and is also used in CSS
+                        to describe colors.
+                    </p>
                 </div>
-                <div className="flex items-center mx-auto sm:mx-0  space-y-4  px-5 py-4 rounded-xl">
-                    <div className="space-x-2 space-y-2 flex items-center justify-center flex-wrap ">
-                        <div
-                            style={{
-                                backgroundColor: `hsl(${hue}, ${saturation}%, ${lightness}%)`
-                            }}
-                            className=" w-[140px] h-[140px] sm:w-[180px] sm:h-[180px] flex items-center justify-center rounded-xl shadow-md"
-                        >
-                            <p>{normalTextRating}</p> /{" "}
-                            <p className="text-2xl"> {largeTextRating}</p>
+                <div>
+                    <InputField
+                        label="Hex"
+                        description="Enter a hex value"
+                        placeholder="#FF0000"
+                        onChange={(e) => {
+                            if (isValidHex(e.target.value)) {
+                                const { h, s, l } = hexToHSL(e.target.value);
+                                setHue(h);
+                                setSaturation(s);
+                                setLightness(l);
+                            }
+                        }}
+                    />
+                </div>
+                <div className="flex flex-wrap">
+                    <div className="flex flex-col space-y-4">
+                        <div className="">
+                            <div
+                                className={clsx(
+                                    "flex flex-wrap items-center justify-center w-full h-full "
+                                )}
+                            >
+                                <Hue
+                                    hue={hue}
+                                    saturation={saturation}
+                                    lightness={lightness}
+                                    setHue={setHue}
+                                />
+                                <div className="flex">
+                                    <Saturation
+                                        hue={hue}
+                                        saturation={saturation}
+                                        lightness={lightness}
+                                        setSaturation={setSaturation}
+                                    />
+                                    <Lightness
+                                        hue={hue}
+                                        saturation={saturation}
+                                        lightness={lightness}
+                                        setLightness={setLightness}
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex flex-wrap flex-col space-y-1 sm:space-y-4">
-                            <div className="text-gray-300 pt-0 text-sm box-border font-thin">
-                                HSL: {`hsl(${hue}, ${saturation}%, ${lightness}%)`}
-                            </div>
-                            <div className="text-gray-300 text-sm box-border font-thin">
-                                RGB: {`rgb(${rgb.red}, ${rgb.green}, ${rgb.blue})`}
-                            </div>
-                            <div className="text-gray-300 text-sm box-border font-thin">
-                                HEX: {hex}
-                            </div>
-                            <div className="text-gray-300 text-sm box-border font-thin">
-                                Normal Text Rating: {largeTextRating}
-                            </div>
-                            <div className="text-gray-300 text-sm box-border font-thin">
-                                Large Text Rating: {largeTextRating}
+                        <div className="flex items-center mx-auto sm:mx-0  space-y-4  px-5 py-4 rounded-xl">
+                            <div className="space-x-2 space-y-2 flex items-start justify-center  ">
+                                <div
+                                    style={{
+                                        backgroundColor: `hsl(${hue}, ${saturation}%, ${lightness}%)`,
+                                        color: textColor
+                                    }}
+                                    className=" w-[180px] h-[180px] flex items-center justify-center rounded-xl shadow-md"
+                                >
+                                    <p>{normalTextRating}</p> /{" "}
+                                    <p className="text-2xl"> {largeTextRating}</p>
+                                </div>
+                                <div className="flex flex-wrap flex-col space-y-1 ">
+                                    <div className="text-gray-300 pt-0 text-sm box-border font-thin">
+                                        HSL: {`hsl(${hue}, ${saturation}%, ${lightness}%)`}
+                                    </div>
+                                    <div className="text-gray-300 text-sm box-border font-thin">
+                                        RGB: {`rgb(${rgb.red}, ${rgb.green}, ${rgb.blue})`}
+                                    </div>
+                                    <div className="text-gray-300 text-sm box-border font-thin">
+                                        HEX: {hex}
+                                    </div>
+                                    <div className="text-gray-300 text-sm box-border font-thin">
+                                        Normal Text Rating: {largeTextRating}
+                                    </div>
+                                    <div className="text-gray-300 text-sm box-border font-thin">
+                                        Large Text Rating: {largeTextRating}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
             <ColorWheel
+                className="sm:!items-start sm:!justify-start"
                 color={
                     hsv && {
                         hue: hsv?.h,

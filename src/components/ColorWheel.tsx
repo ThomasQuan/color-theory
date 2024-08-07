@@ -131,116 +131,121 @@ export const ColorWheel = ({
     const [r, g, b] = useMemo(() => xy2rgb(position.x, position.y, radius), [position, radius]);
 
     return (
-        <div
-            className={clsx(
-                "flex flex-wrap sm:flex-nowrap justify-center space-x-4 px-5 py-4",
-                className
-            )}
-        >
-            <div
-                style={{
-                    position: "relative",
-                    width: `${radius * 2}px`,
-                    height: `${radius * 2}px`
-                }}
-            >
-                <canvas
-                    ref={ref}
+        <div className="w-full md:w-1/2 h-fit min-w-min ">
+            <div className="px-4">
+                <p className="text-xl underline underline-offset-8">Harmony Selector</p>
+                <p className="text-sm">
+                    The color wheel is a visual representation of the HSV color space. You can
+                    select a color by clicking and dragging on the wheel. The color wheel will
+                    display the selected color and its harmonies based on the selected harmony.
+                </p>
+            </div>
+            <div className={clsx("flex flex-wrap justify-center space-x-4 px-5 py-4", className)}>
+                <div
                     style={{
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: "9999px"
+                        position: "relative",
+                        width: `${radius * 2}px`,
+                        height: `${radius * 2}px`
                     }}
-                />
-                {harmonyPairs.map((harmony: any, i: number) => {
-                    if (i === 0) return null;
-                    const [r, g, b] = hsv2rgb(harmony.hue, harmony.saturation, harmony.value);
-                    return (
+                >
+                    <canvas
+                        ref={ref}
+                        style={{
+                            width: "100%",
+                            height: "100%",
+                            borderRadius: "9999px"
+                        }}
+                    />
+                    {harmonyPairs.map((harmony: any, i: number) => {
+                        if (i === 0) return null;
+                        const [r, g, b] = hsv2rgb(harmony.hue, harmony.saturation, harmony.value);
+                        return (
+                            <div
+                                key={i}
+                                style={{
+                                    position: "absolute",
+                                    top: "-12px",
+                                    left: "-12px",
+                                    width: "24px",
+                                    height: "24px",
+                                    borderRadius: "999px",
+                                    border: "2px solid #fff",
+                                    backgroundColor: `rgb(${r}, ${g}, ${b})`,
+                                    transform: `translate(${harmony.x}px, ${harmony.y}px)`,
+                                    boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.05)"
+                                }}
+                            />
+                        );
+                    })}
+                    <Draggable onDrag={handleDrag} position={position}>
                         <div
-                            key={i}
                             style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                justifyContent: "center",
+                                alignItems: "center",
                                 position: "absolute",
                                 top: "-12px",
                                 left: "-12px",
                                 width: "24px",
                                 height: "24px",
-                                borderRadius: "999px",
-                                border: "2px solid #fff",
+                                borderRadius: "99px",
+                                border: "2px solid rgba(255, 255, 255, 1)",
                                 backgroundColor: `rgb(${r}, ${g}, ${b})`,
-                                transform: `translate(${harmony.x}px, ${harmony.y}px)`,
                                 boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.05)"
                             }}
-                        />
-                    );
-                })}
-                <Draggable onDrag={handleDrag} position={position}>
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            position: "absolute",
-                            top: "-12px",
-                            left: "-12px",
-                            width: "24px",
-                            height: "24px",
-                            borderRadius: "99px",
-                            border: "2px solid rgba(255, 255, 255, 1)",
-                            backgroundColor: `rgb(${r}, ${g}, ${b})`,
-                            boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.05)"
-                        }}
-                    >
-                        <div
-                            style={{
-                                position: "absolute",
-                                width: "4px",
-                                height: "4px",
-                                borderRadius: "99px",
-                                backgroundColor: "#fff"
-                            }}
-                        />
-                    </div>
-                </Draggable>
-            </div>
-            <div className="rounded-xl flex items-center justify-center w-auto sm:w-96 sm:block">
-                <div>
-                    <Dropdown
-                        label="Harmony"
-                        value={selectedHarmony}
-                        onChange={(value) => {
-                            if (!value) return;
-                            if (!harmonies[value as keyof typeof harmonies]) {
-                                return;
-                            }
-                            setSelectedHarmony(value as keyof typeof harmonies);
-                        }}
-                        options={Object.keys(harmonies).map((key) => ({
-                            label: key,
-                            value: key
-                        }))}
-                    />
-                    <div className="">
-                        <div>
-                            <p>Color Combination</p>
+                        >
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    width: "4px",
+                                    height: "4px",
+                                    borderRadius: "99px",
+                                    backgroundColor: "#fff"
+                                }}
+                            />
                         </div>
-                        <div className="space-x-1 flex items-center ">
-                            {harmonyPairs.map((harmony: any, i: number) => {
-                                const [r, g, b] = hsv2rgb(
-                                    harmony.hue,
-                                    harmony.saturation,
-                                    harmony.value
-                                );
-                                return (
-                                    <div
-                                        key={i}
-                                        className="rounded-lg w-14 h-14"
-                                        style={{
-                                            backgroundColor: `rgb(${r}, ${g}, ${b})`
-                                        }}
-                                    />
-                                );
-                            })}
+                    </Draggable>
+                </div>
+                <div className="flex items-center justify-center w-auto sm:w-72 sm:block">
+                    <div>
+                        <Dropdown
+                            label="Harmony"
+                            value={selectedHarmony}
+                            onChange={(value) => {
+                                if (!value) return;
+                                if (!harmonies[value as keyof typeof harmonies]) {
+                                    return;
+                                }
+                                setSelectedHarmony(value as keyof typeof harmonies);
+                            }}
+                            options={Object.keys(harmonies).map((key) => ({
+                                label: key,
+                                value: key
+                            }))}
+                        />
+                        <div className="">
+                            <div>
+                                <p>Color Combination</p>
+                            </div>
+                            <div className="space-x-1 flex items-center ">
+                                {harmonyPairs.map((harmony: any, i: number) => {
+                                    const [r, g, b] = hsv2rgb(
+                                        harmony.hue,
+                                        harmony.saturation,
+                                        harmony.value
+                                    );
+                                    return (
+                                        <div
+                                            key={i}
+                                            className="rounded-lg w-14 h-14 "
+                                            style={{
+                                                backgroundColor: `rgb(${r}, ${g}, ${b})`
+                                            }}
+                                        />
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 </div>

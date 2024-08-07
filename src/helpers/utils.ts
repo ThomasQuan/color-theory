@@ -136,3 +136,91 @@ export const hsv2hsl = (h: number, s: number, v: number): [number, number, numbe
     const sl = l === 0 || l === 1 ? 0 : (v - l) / Math.min(l, 1 - l);
     return [h, sl * 100, l * 100];
 };
+
+export const getRGB = (color: string): any => {
+    return parseInt(color, 16) || color;
+};
+
+export const getsRGB = (color: string): any => {
+    const rgb = getRGB(color);
+    return rgb / 255 <= 0.03928 ? rgb / 255 / 12.92 : Math.pow((rgb / 255 + 0.055) / 1.055, 2.4);
+};
+
+export const getLuminance = (hexColor: string) => {
+    return (
+        0.2126 * getsRGB(hexColor.substr(1, 2)) +
+        0.7152 * getsRGB(hexColor.substr(3, 2)) +
+        0.0722 * getsRGB(hexColor.substr(-2))
+    );
+};
+
+/**
+ * @param foreground HEX Color Value
+ * @param background HEX Color Value
+ * @returns contrast ratio between two colors
+ */
+export const getContrast = (foreground: string, background: string) => {
+    const L1 = getLuminance(foreground);
+    const L2 = getLuminance(background);
+    return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+};
+
+export const getTextColor = (bgColor: string): string => {
+    const whiteContrast = getContrast(bgColor, "#ffffff");
+    const blackContrast = getContrast(bgColor, "#000000");
+
+    return whiteContrast > blackContrast ? "#ffffff" : "#000000";
+};
+
+export const hexToHSL = (hex: string): { h: number; s: number; l: number } => {
+    // Remove the hash at the start if it's there
+    hex = hex.replace(/^#/, "");
+
+    // Parse r, g, b values
+    const r = parseInt(hex.substring(0, 2), 16) / 255;
+    const g = parseInt(hex.substring(2, 4), 16) / 255;
+    const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+    // Find the maximum and minimum values of r, g and b
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+
+    // Calculate lightness
+    const l = (max + min) / 2;
+
+    let h = 0;
+    let s = 0;
+
+    if (max !== min) {
+        const delta = max - min;
+
+        // Calculate saturation
+        s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+
+        // Calculate hue
+        switch (max) {
+            case r:
+                h = (g - b) / delta + (g < b ? 6 : 0);
+                break;
+            case g:
+                h = (b - r) / delta + 2;
+                break;
+            case b:
+                h = (r - g) / delta + 4;
+                break;
+        }
+
+        h /= 6;
+    }
+
+    // Return HSL values
+    return {
+        h: Math.round(h * 360),
+        s: Math.round(s * 100),
+        l: Math.round(l * 100)
+    };
+};
+
+export const isValidHex = (hex: string): boolean => {
+    return /^#([0-9A-F]{3}){1,2}$/i.test(hex);
+};
