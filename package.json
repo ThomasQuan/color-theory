@@ -5,6 +5,8 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
+        "predeploy": "bun run build",
+        "deploy": "gh-pages -d dist",
         "build": "tsc -b && vite build",
         "lint": "eslint \"{src,apps}/**/*.ts\" --fix",
         "lint:fix": "eslint src --fix && yarn format",
