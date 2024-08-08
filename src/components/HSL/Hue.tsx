@@ -104,7 +104,7 @@ const Hue: FC<HueProps> = ({ hue, saturation, lightness, setHue }) => {
             version="1.1"
         >
             <g transform={`translate(${centerOffset},${centerOffset})`}>
-                {Array.from({ length: 360 }, (value, key) => (
+                {Array.from({ length: 360 }, (_, key) => (
                     <HueSlice
                         degree={key}
                         radius={radius}

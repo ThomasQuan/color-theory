@@ -75,7 +75,7 @@ export const xy2rgb = (x: number, y: number, radius: number) => {
     return hsv2rgb(hue, saturation, value);
 };
 
-export const hsv2xy = (hue: number, saturation: number, value: number, radius: number) => {
+export const hsv2xy = (hue: number, saturation: number, radius: number) => {
     const adjustedHue = hue - 180;
     const [r, phi] = polar2xy(radius * saturation, deg2rad(adjustedHue));
     return {
@@ -137,12 +137,12 @@ export const hsv2hsl = (h: number, s: number, v: number): [number, number, numbe
     return [h, sl * 100, l * 100];
 };
 
-export const getRGB = (color: string): any => {
+export const getRGB = (color: string): string | number => {
     return parseInt(color, 16) || color;
 };
 
-export const getsRGB = (color: string): any => {
-    const rgb = getRGB(color);
+export const getsRGB = (color: string): number => {
+    const rgb = getRGB(color) as number;
     return rgb / 255 <= 0.03928 ? rgb / 255 / 12.92 : Math.pow((rgb / 255 + 0.055) / 1.055, 2.4);
 };
 

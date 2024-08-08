@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { fromEvent, merge } from "rxjs";
 import { concatMap, map, takeUntil } from "rxjs/operators";
 

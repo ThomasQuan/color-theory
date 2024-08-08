@@ -1,9 +1,9 @@
 import clsx from "clsx";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Draggable, { DraggableEventHandler } from "react-draggable";
 
-import Dropdown from "./Dropdown";
 import { harmonies, hsv2rgb, hsv2xy, polar2xy, rad2deg, xy2polar, xy2rgb } from "../helpers";
+import Dropdown from "./Dropdown";
 
 export type ColorWheelProps = {
     radius: number;
@@ -25,8 +25,8 @@ export const ColorWheel = ({
     const ref = useRef<HTMLCanvasElement>(null);
     const [position, setPosition] = useState(
         defaultColor
-            ? hsv2xy(defaultColor.hue, defaultColor.saturation, defaultColor.value, radius)
-            : hsv2xy(0, 1, 1, radius)
+            ? hsv2xy(defaultColor.hue, defaultColor.saturation, radius)
+            : hsv2xy(0, 1, radius)
     );
     const [selectedHarmony, setSelectedHarmony] = useState<keyof typeof harmonies>(defaultHarmony);
 
@@ -48,7 +48,7 @@ export const ColorWheel = ({
 
     useEffect(() => {
         if (color) {
-            setPosition(hsv2xy(color.hue, 1, 1, radius));
+            setPosition(hsv2xy(color.hue, 1, radius));
         }
     }, [color, radius]);
 
